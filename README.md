@@ -47,7 +47,10 @@ DineSense/
 ├── README.md
 └── requirements.txt
 ```
-
+#UI IMAGES
+> ![Dashboard Screenshot](./landing_page_SA.png)
+>  ![Dashboard Screenshot](./positive_feedback_review.png)
+>  ![Dashboard Screenshot](./negative_feedback_review.png)
 ## ▶️ How to Run
 ### Clone
 ```
