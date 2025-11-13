@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DineSense : Restaurant Reviews Sentiment Analyser</title>
+  <link rel="shortcut icon" href="{{ url_for('static', filename='food-favicon.ico') }}">
+  <script src="https://kit.fontawesome.com/5f3f547070.js" crossorigin="anonymous"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f7f8fb;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --accent:#6C63FF;
+      --success:#16a34a;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --radius:14px;
+      --shadow:0 10px 30px rgba(16,24,40,0.06);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:linear-gradient(180deg,var(--bg),#ffffff);
+      color:#0f172a;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    /* Layout */
+    .page{
+      max-width:980px;
+      margin:28px auto;
+      padding:24px;
+    }
+    header{
+      text-align:center;
+      margin-bottom:18px;
+    }
+    .heading_font{ font-family:'Yatra One', cursive; color:var(--accent); font-weight:700 }
+    .container-heading{
+      font-size:28px;
+      margin:0;
+    }
+    .description p{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    /* Card */
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:28px;
+      box-shadow:var(--shadow);
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      align-items:stretch;
+    }
+    label{
+      font-weight:600;
+      font-size:14px;
+      margin-bottom:6px;
+    }
+    textarea{
+      width:100%;
+      min-height:140px;
+      padding:14px;
+      font-size:15px;
+      border-radius:10px;
+      border:1px solid #e6e9ef;
+      resize:vertical;
+    }
+    textarea:focus{
+      outline:none;
+      box-shadow:0 6px 18px rgba(108,99,255,0.10);
+      border-color:var(--accent);
+    }
+
+    /* Controls */
+    .controls{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+    .btn{
+      background:var(--accent);
+      color:white;
+      border:none;
+      padding:12px 26px;
+      border-radius:999px;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow:0 8px 20px rgba(108,99,255,0.14);
+      transition:transform .12s ease, opacity .12s;
+    }
+    .btn[disabled]{ opacity:.7; cursor:not-allowed; transform:none; box-shadow:none }
+
+    /* Spinner */
+    .spinner{
+      width:18px; height:18px;
+      border-radius:50%;
+      border:3px solid rgba(255,255,255,0.3);
+      border-left-color:white;
+      animation:spin .8s linear infinite;
+      display:inline-block;
+      vertical-align:middle;
+      margin-right:8px;
+    }
+    @keyframes spin{ to { transform:rotate(360deg) } }
+
+    /* Result */
+    .result-wrap{ text-align:center; margin-top:10px; min-height:56px }
+    .result{
+      display:inline-flex;
+      gap:12px;
+      align-items:center;
+      padding:10px 14px;
+      border-radius:999px;
+      font-weight:700;
+      font-size:15px;
+      box-shadow:0 8px 24px rgba(16,24,40,0.06);
+      transition:transform .18s, opacity .18s;
+    }
+    .dot{ width:12px; height:12px; border-radius:50%; display:inline-block }
+
+    /* Gifs (optional) */
+    .gif{
+      max-width:220px;
+      display:block;
+      margin:12px auto 0;
+      border-radius:10px;
+      box-shadow:0 8px 20px rgba(16,24,40,0.06);
+    }
+
+    /* Footer */
+    .footer{
+      margin-top:22px;
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .contact{ margin-bottom:6px }
+    .contact a{ color:var(--muted); margin:0 8px; text-decoration:none }
+    .contact a:hover{ color:var(--accent) }
+
+    /* Responsive */
+    @media (max-width:640px){
+      .page{ padding:16px }
+      .container-heading{ font-size:22px }
+      textarea{ min-height:120px }
+    }
+  </style>
+</head>
+<body>
+  <main class="page" role="main">
+    <header>
+      <h2 class="container-heading"><span class="heading_font">DineSense's</span> Restaurant Review Sentiment Analyser</h2>
+      <div class="description">
+        <p>A Machine Learning Web App, Using Natural Language Processing Built with Flask</p>
+      </div>
+    </header>
+
+      <!-- Result area (server-side fallback still supported) -->
+      <div id="resultWrap" class="result-wrap" aria-live="polite">
+        {% if prediction is defined %}
+          {% if prediction == 1 %}
+            <div class="result" style="background:#ecfdf5; color:var(--success)">
+              <span class="dot" style="background:var(--success)"></span>
+              <span>😊 Positive review</span>
+            </div>
+            <img class="gif" src="{{ url_for('static', filename='spongebob-loves-you-for-positive-feedback.gif') }}" alt="Positive gif">
+          {% else %}
+            <div class="result" style="background:#fff1f2; color:var(--danger)">
+              <span class="dot" style="background:var(--danger)"></span>
+              <span>😞 Negative review</span>
+            </div>
+            <img class="gif" src="{{ url_for('static', filename='patrick-sad-for-negative-feedback.gif') }}" alt="Negative gif">
+          {% endif %}
+        {% endif %}
+      </div>
+
+      <p style="text-align:center; color:var(--muted); margin-top:6px; font-size:13px">
+        All reviews are important for us Thank You!.
+      </p>
+	  </section>
+
+    <footer class="footer" role="contentinfo">
+      <div class="contact">
+        <a target="_blank" href="https://github.com/Hina-Tech-38" aria-label="GitHub"><i class="fab fa-github fa-lg"></i></a>
+        <a target="_blank" href="https://www.linkedin.com/in/heena-shaikh-datasci/" aria-label="LinkedIn"><i class="fab fa-linkedin fa-lg"></i></a>
+      </div>
+      <p class="footer-description">Made with ❤️ by Heena Shaikh.</p>
+    </footer>
+  </main>
+
+  <script>
+    async function submitReview(){
+      const textarea = document.getElementById('review');
+      const text = textarea.value.trim();
+      if(!text){
+        textarea.focus();
+        return;
+      }
+
+      const btn = document.getElementById('predictBtn');
+      const btnContent = document.getElementById('btnContent');
+      const resultWrap = document.getElementById('resultWrap');
+
+      // disable & show spinner
+      btn.disabled = true;
+      btnContent.innerHTML = '<span class="spinner" aria-hidden="true"></span>Analyzing...';
+
+      try{
+        // send to your Flask endpoint: /predict
+        const resp = await fetch('{{ url_for("predict") }}', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ review: text })
+        });
+
+        if(!resp.ok){
+          throw new Error('Server error');
+        }
+
+        const data = await resp.json();
+        // Expected server response: { prediction: 1, label: "Positive", confidence: 0.93 }
+        const label = data.label || (data.prediction === 1 ? 'Positive' : 'Negative');
+        const confidence = data.confidence ?? (data.prediction === 1 ? 0.9 : 0.9);
+
+        // create result pill
+        const el = document.createElement('div');
+        el.className = 'result';
+        let bg = '#fff7ed';
+        let color = 'var(--warn)';
+        let dotColor = 'var(--warn)';
+        let emoji = '😐';
+        if(label.toLowerCase().includes('positive')){ bg = '#ecfdf5'; color = 'var(--success)'; dotColor = 'var(--success)'; emoji='😊' }
+        else if(label.toLowerCase().includes('negative')){ bg = '#fff1f2'; color = 'var(--danger)'; dotColor = 'var(--danger)'; emoji='😞' }
+        el.style.background = bg;
+        el.style.color = color;
+        el.innerHTML = `<span class="dot" style="background:${dotColor}"></span>
+                        <span>${emoji} ${label} — ${Math.round(confidence*100)}%</span>`;
+
+        resultWrap.innerHTML = '';
+        resultWrap.appendChild(el);
+
+        // optionally show gif (server-side fallback kept for static rendering)
+        const gifPath = data.prediction === 1 ? '{{ url_for("static", filename="spongebob-loves-you-for-positive-feedback.gif") }}' :
+                        '{{ url_for("static", filename="patrick-sad-for-negative-feedback.gif") }}';
+        const img = document.createElement('img');
+        img.className = 'gif';
+        img.src = gifPath;
+        img.alt = label + ' illustration';
+        resultWrap.appendChild(img);
+
+      } catch (err){
+        resultWrap.innerHTML = `<div class="result" style="background:#fff3f2; color:var(--danger)"><span class="dot" style="background:var(--danger)"></span> Error: could not get prediction</div>`;
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btnContent.textContent = 'Predict sentiment';
+      }
+    }
+  </script>
+</body>
+</html>
